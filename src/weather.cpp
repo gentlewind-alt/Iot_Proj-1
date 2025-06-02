@@ -4,7 +4,7 @@
 #include <ArduinoJson.h>  // For JSON parsing
 
 std::string currentWeather = "Loading...";
-const char* apiKey = "e19f470114e4a4f4580249def7bd3643";  // ← INSERT YOUR KEY HERE
+const char* apiKey = "";  // ← INSERT YOUR KEY HERE
 
 // List of up to 5 city names or coordinates
 const char* cityList[] = {
