@@ -4,9 +4,21 @@
 
 #include <string>
 #include <Adafruit_SSD1306.h>
+#include <Wire.h>
+#include <RTClib.h>
+#include <Adafruit_NeoPixel.h>
+#include <U8g2lib.h>
+#include <WiFi.h>
+#include <SPIFFS.h>
+
+#include "clock.h"
+#include "weather.h"
+#include "emoji.h"
+#include "sensors.h"
 
 extern int timeZoneOffset;
 extern std::string weatherRegion;
+extern bool menuselecting;
 
 // Interface core
 void startInterface();
@@ -15,7 +27,6 @@ void interfaceLoop();
 
 // Actions
 void toggleAlarm();
-void setAlarmTime(int hour, int minute);
 void changeTimeZone();
 void changeWeatherRegion();
 void showEmoji(int index);

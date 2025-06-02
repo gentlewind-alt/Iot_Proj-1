@@ -1,14 +1,17 @@
+#ifndef ENV_API
+#endif
+
+const char* apiKey = ENV_API;
+
 #include "weather.h"
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>  // For JSON parsing
 
 std::string currentWeather = "Loading...";
-const char* apiKey = "e19f470114e4a4f4580249def7bd3643";  // ← INSERT YOUR KEY HERE
-
 // List of up to 5 city names or coordinates
 const char* cityList[] = {
-  "Tokyo", "Delhi", "London", "Paris", "New York",
+  "Tokyo", "Delhi", "London", "Paris", "Colombia",
   "Berlin", "Moscow", "Seoul", "Dhenkanal", "Mumbai"
 };
 const int cityCount = sizeof(cityList) / sizeof(cityList[0]);
@@ -40,12 +43,14 @@ void fetchWeather() {
 
   if (httpCode > 0) {
     String payload = http.getString();
-    DynamicJsonDocument doc(1024);
+    JsonDocument doc;
 
     DeserializationError error = deserializeJson(doc, payload);
     if (!error) {
       float temp = doc["main"]["temp"];
-      currentWeather = weatherRegion + ": " + std::to_string(temp) + " C";
+      char tempStr[16];
+      snprintf(tempStr, sizeof(tempStr), "%.2f", temp);
+      currentWeather = weatherRegion + ": " + tempStr + " C";
     } else {
       currentWeather = "Parse Err";
     }

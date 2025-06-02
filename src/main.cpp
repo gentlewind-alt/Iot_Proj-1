@@ -1,17 +1,4 @@
-#include <Wire.h>
-#include <Adafruit_SSD1306.h>
-#include <RTClib.h>
-#include <Adafruit_NeoPixel.h>
-#include <U8g2lib.h>
-#include <WiFi.h>
-#include <SPIFFS.h>
-
-#include "clock.h"
-#include "alarm.h"
-#include "weather.h"
-#include "emoji.h"
 #include "interface.h"
-#include "sensors.h"
 
 // ===Bus addresses and I2C Setup===
 // === Pin Definitions ===
@@ -25,20 +12,15 @@
 #define NEOPIXEL_PIN    10
 #define BUZZER_PIN      7
 #define PIR_PIN         6
+#define RST_PIN         3
 
 // === Display and RTC Setup ===
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
 // === Global Display and RTC Objects ===
 Adafruit_SSD1306 display(128, 64, &Wire);
 RTC_DS1307 rtc;
-
 // === NeoPixel Setup ===
 Adafruit_NeoPixel pixel(1, NEOPIXEL_PIN, NEO_GRB + NEO_KHZ800);
-
-// === Joystick Debounce ===
-unsigned long lastJoyAction = 0;
-const unsigned long joyDebounceDelay = 300;
-
 // == Function Prototypes ===
 void displayText(int x, int y, const std::string &text) {
   display.setCursor(x, y);
@@ -57,6 +39,10 @@ void lightPixel(uint32_t color) {
 
 // === Button Handling ===
 int getUserInput() {
+  if (digitalRead(RST_PIN) == LOW) {
+    lightPixel(pixel.Color(255, 255, 0));
+    return 6;
+  }
   if (digitalRead(OK_BUTTON) == LOW) {
     lightPixel(pixel.Color(0, 255, 0));
     return 1;
@@ -69,10 +55,10 @@ int getUserInput() {
     lightPixel(pixel.Color(255, 0, 0));
     return 3;
   }
-  if (digitalRead(UP_BUTTON) == LOW) {
+  if (digitalRead(UP_BUTTON) == LOW) { //black  
     return 4;
   }
-  if (digitalRead(DOWN_BUTTON) == LOW) {
+  if (digitalRead(DOWN_BUTTON) == LOW) { //yellow
     return 5;
   }
   return 0;
@@ -81,8 +67,6 @@ int getUserInput() {
 const char* ssid = "Wokwi-GUEST";
 const char* password = "";
 
-int frame;
-
 void playEmojiBootAnimation() {
   for (int i = 0; i < 541; i++) {   // assuming 90 frames total
     u8g2.clearBuffer();
@@ -90,7 +74,6 @@ void playEmojiBootAnimation() {
     u8g2.sendBuffer();
   }
 }
-
 
 void setup() {
 
@@ -138,10 +121,8 @@ void setup() {
   display.setTextSize(1);
   display.display();
 
-
-
   // === Emoji Boot Expression ===
-  playEmojiBootAnimation();
+  // playEmojiBootAnimation();
   Serial.println("✅ Emoji boot animation complete!");
   // setupMotionSensor();
 
@@ -151,6 +132,7 @@ void setup() {
   pinMode(UP_BUTTON, INPUT_PULLUP);
   pinMode(DOWN_BUTTON, INPUT_PULLUP);
   pinMode(PIR_PIN, INPUT);
+  pinMode(RST_PIN, INPUT_PULLUP);
 
   pixel.begin();
   pixel.setBrightness(100);
@@ -158,16 +140,15 @@ void setup() {
 }
 
 void loop() {
-  // motionSensorLoop(); // Handles motion + idle animation
-
-  // if (!inIdleAnimation) { // Only do clock & interface work if not idle
-  //   if (rtc.isrunning()) {
-  //     DateTime now = rtc.now();
-  //     checkAndTriggerAlarm(now);   // ⏰ check and ring alarm
-  //   } else {
-  //     Serial.println("⚠ RTC not running or not responding");
-  //   }
-
-  //   interfaceLoop();               // 🧭 menu, screen, button control
-  // }
+  motionSensorLoop(); // Handles motion + idle animation
+  if (!inIdleAnimation) { // Only do clock & interface work if not idle
+    if (rtc.isrunning()) {
+      DateTime now = rtc.now();
+      checkAndTriggerAlarm(now);
+      showClockPage(now);   // ⏰ check and ring alarm
+    } else {
+      Serial.println("⚠ RTC not running or not responding");
+    }
+    interfaceLoop(); // Draw the default clock screen at boot
+  }
 }

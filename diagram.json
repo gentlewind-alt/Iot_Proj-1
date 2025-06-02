@@ -73,7 +73,15 @@
       "rotate": 90,
       "attrs": {}
     },
-    { "type": "wokwi-pir-motion-sensor", "id": "pir1", "top": 90.4, "left": -208.98, "attrs": {} }
+    { "type": "wokwi-pir-motion-sensor", "id": "pir1", "top": 90.4, "left": -208.98, "attrs": {} },
+    {
+      "type": "wokwi-pushbutton-6mm",
+      "id": "btn6",
+      "top": 222.6,
+      "left": 150.4,
+      "rotate": 90,
+      "attrs": { "color": "green", "xray": "1" }
+    }
   ],
   "connections": [
     [ "esp:TX", "$serialMonitor:RX", "", [] ],
@@ -112,7 +120,9 @@
     [ "pir1:GND", "esp:GND.5", "black", [ "h86.14", "v-19.2" ] ],
     [ "pir1:OUT", "esp:6", "green", [ "h57.46", "v-76.8" ] ],
     [ "pir1:VCC", "esp:3V3.2", "red", [ "h-36.68", "v-132.12" ] ],
-    [ "esp:5V.2", "ultrasonic1:VCC", "red", [ "h0" ] ]
+    [ "esp:5V.2", "ultrasonic1:VCC", "red", [ "h0" ] ],
+    [ "esp:GND.6", "btn6:2.l", "black", [ "v0", "h26.38", "v48", "h28.8" ] ],
+    [ "btn6:1.l", "esp:3", "green", [ "v-106.4", "h-156", "v-48" ] ]
   ],
   "dependencies": {}
 }
