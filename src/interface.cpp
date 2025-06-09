@@ -1,28 +1,13 @@
 #include "interface.h"
-#include <Arduino.h>
-#include "weather.h"
-#include "clock.h"
-#include "emoji.h"
-#include <vector>
-#include <string>
 
 extern int selectedTimeZoneIndex;
 extern Adafruit_SSD1306 display;
 extern RTC_DS1307 rtc;
 
-// === Menu Options ===
-enum MenuOption {
-  MENU_SELECTOR = -1,
-  MENU_CLOCK,
-  MENU_ALARM,         // merged menu
-  MENU_SET_REGION,
-  MENU_SET_TIMEZONE,
-  MENU_COUNT
-};
 
 // Add this extern so main.cpp and interface.cpp share the same variable
 bool menuSelecting = false;
-static int currentMenu = MENU_CLOCK; // Default to clock
+int currentMenu = MENU_CLOCK; // Default to clock
 static int selectedMenuIndex = MENU_CLOCK;
 
 // === Global Variables ===
@@ -42,12 +27,6 @@ static std::string formatTime(int h, int m) {
 static std::string formatTZ(int off) {
   char b[8]; snprintf(b, sizeof(b), "UTC%+d", off);
   return std::string(b);
-}
-
-// === Interface Entry Point ===
-void startInterface() {
-  DateTime now = rtc.now();
-  const TimeZone& tz = timeZones[selectedTimeZoneIndex];
 }
 
 // === Helpers ===

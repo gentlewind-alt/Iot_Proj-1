@@ -4,11 +4,12 @@
 #include <RTClib.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
+#include <time.h>
 
 // List of standard time zones you want to cycle through:
 const TimeZone timeZones[] = {
-  {"IST", 0.0},
-  {"UTC", -5.5},
+  {"IST", +5.5},
+  {"UTC", 0.0},
   {"PST", -13.5},
   {"MST", -12.5},
   {"CST", -11.5},
@@ -26,9 +27,6 @@ const TimeZone timeZones[] = {
 const int tzCount = sizeof(timeZones) / sizeof(timeZones[0]);
 
 int selectedTimeZoneIndex = 0;
-
-// --- Alarm/Buzzer Variables and Functions ---
-#define BUZZER_PIN 7  // example buzzer pin, change as needed
 
 bool alarmEnabled = false;
 int alarmHour = 7;
@@ -73,7 +71,8 @@ void checkAndTriggerAlarm(const DateTime& now) {
     alarmBeeping = true;
     unsigned long startBeep = millis();
     unsigned long snoozeSet = 0;
-    while (millis() - startBeep < 60000) { // Beep for 60 seconds or until snooze
+    while (millis() - startBeep < 60000) // Beep for 60 seconds or until snooze
+    {
         buzzerTone(BUZZER_PIN, 2000, 30); // Short beep (30ms)
         delay(30); // Small pause between beeps
 
@@ -167,5 +166,37 @@ void changeTimeZone() {
 void setTimeZoneIndex(int index) {
   if (index >= 0 && index < tzCount) {
     selectedTimeZoneIndex = index;
+  }
+}
+
+void syncRTCWithNTP() {
+  configTime(0, 0, "pool.ntp.org"); // Use UTC; adjust offset if needed
+  struct tm timeinfo;
+  const int maxRetries = 5;
+  int attempt = 0;
+  bool success = false;
+
+  while (attempt < maxRetries) {
+    if (getLocalTime(&timeinfo)) {
+      rtc.adjust(DateTime(
+        timeinfo.tm_year + 1900,
+        timeinfo.tm_mon + 1,
+        timeinfo.tm_mday,
+        timeinfo.tm_hour,
+        timeinfo.tm_min,
+        timeinfo.tm_sec
+      ));
+      Serial.println("✅ RTC synced with NTP!");
+      success = true;
+      break;
+    } else {
+      Serial.println("❌ Failed to get time from NTP, retrying...");
+      delay(1000); // Wait 1 second before retrying
+      attempt++;
+    }
+  }
+
+  if (!success) {
+    Serial.println("❌ Failed to sync RTC with NTP after retries.");
   }
 }
